@@ -85,38 +85,13 @@ def start(
         update.message.reply_text(text)
 
 
-def get_telegram_usernames():  # TODO:вывести файл из функции
-    hopper_users = []
-    with open('QA.json', 'r') as file:
-        raw_data = json.load(file)
-    for phrase_part in raw_data:
-        answer = raw_data[phrase_part]['answer'][0]
-        if 'Telegram:' in answer:
-            telegram_info = answer.split('Telegram:')[1]
-            if telegram_info:
-                hopper_users.append(sanitize_telegram_username(telegram_info))
-    return hopper_users
-
-
-def sanitize_telegram_username(raw_username: str):
-    if '@' in raw_username:
-        username = raw_username.replace('@', '').split(' ')[0]
-        return username.lower()
-    elif '/' in raw_username:
-        username = raw_username.split('/')[-1]
-        return username.lower()
-    username = raw_username
-    return username.lower()
-
-
 if __name__ == '__main__':
 
     load_dotenv()
     telegram_token = os.environ['TELEGRAM-TOKEN']
     dialogflow_project_id = os.environ['DIALOG-PROJECT-ID']
     language = os.environ['LANGUAGE']
-
-    hopper_users = get_telegram_usernames()
+    hopper_users = json.loads(os.environ['HOPPER-USERS'])
 
     updater = Updater(token=telegram_token, use_context=True)
     dispatcher = updater.dispatcher
