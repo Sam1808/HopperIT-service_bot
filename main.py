@@ -2,6 +2,7 @@ import argparse
 import logging
 import json
 import os
+import requests
 import telegram
 
 from google.cloud import dialogflow
@@ -15,9 +16,16 @@ custom_keyboard = [['Кнопка 1', 'Кнопка 2'], ['Кнопка 3']]
 reply_markup = telegram.ReplyKeyboardMarkup(custom_keyboard)
 
 
+def get_metcast(location):
+    weather_url = f'https://wttr.in/{location}_2p_lang=ru.png'
+
+    response = requests.get(weather_url)
+    with open('weather.png', 'wb') as file:
+        file.write(response.content)
+
 def send_chat_message(
         update,
-        context,
+        _,
         project_id: str,
         language: str,
         hopper_users: list,
@@ -31,13 +39,20 @@ def send_chat_message(
         {first_name} {last_name}, я завидую твоему упорству. :)
         Давай поболтаем через часок, может меня обновят...
         '''
-        context.bot.send_message(chat_id=update.effective_chat.id, text=text)
+        update.message.reply_text(text)
         return None
 
-    reply = fetch_answer_from_intent(
-        project_id, session_id, update.message.text, language
-    )
-    context.bot.send_message(chat_id=update.effective_chat.id, text=reply)
+    if 'погода ' in update.message.text.lower():
+        location = update.message.text.lower().split(' ')[1]
+        if location:
+            get_metcast(update.message.text.lower().split(' ')[1])
+            update.message.reply_photo(open('weather.png', "rb"))
+    else:
+        reply = fetch_answer_from_intent(
+            project_id, session_id, update.message.text, language
+        )
+
+        update.message.reply_text(reply)
 
 
 def fetch_answer_from_intent(project_id, session_id, text, language_code):
