@@ -56,36 +56,51 @@ if __name__ == '__main__':
         default=False,
         help='Turn DEBUG mode on'
     )
+    parser.add_argument(
+        '--add',
+        type=bool,
+        default=False,
+        help='Only add intent'
+    )
+    parser.add_argument(
+        '--file',
+        type=str,
+        default=None,
+        help='Intent from file'
+    )
     arguments = parser.parse_args()
 
     level = logging.DEBUG if arguments.debug else logging.INFO
-    logger.setLevel(level=level)
+    logging.basicConfig(level=level)
 
     load_dotenv()
     dialogflow_project_id = os.environ['DIALOG-PROJECT-ID']
-    base_qa_filename = os.environ['BASE_QA_FILENAME']
+    base_qa_filename = arguments.file if arguments.file else os.environ['BASE_QA_FILENAME']
 
     input('''
           Renew DialogFlow base?
           press Enter to continue
           press Ctrl+C to Cancel
           ''')
-    logger.debug('Renew DialogFlow base')
+    logging.debug('Renew DialogFlow base')
 
     if not os.path.exists(base_qa_filename):
-        logger.debug(f'\nSomething wrong with {base_qa_filename} file.\n')
+        logging.debug(f'Something wrong with {base_qa_filename} file.')
         raise FileExistsError
 
-    for intent in get_list_intents(dialogflow_project_id):
-        if 'Default' in intent.display_name:
-            continue
-        delete_intent(dialogflow_project_id, intent.name.split('/')[-1])
-        # limit 'All other requests per minute' of DialogFlow service
-        time.sleep(3)
+    if not arguments.add:
+        logging.debug(f'Delete all current intents')
+        for intent in get_list_intents(dialogflow_project_id):
+            if 'Default' in intent.display_name:
+                continue
+            delete_intent(dialogflow_project_id, intent.name.split('/')[-1])
+            # limit 'All other requests per minute' of DialogFlow service
+            time.sleep(3)
 
     with open(base_qa_filename, 'r') as file:
         questions = json.load(file)
 
+    logging.debug(f'\nCreate intents from {base_qa_filename}\n')
     for phrase_part in questions:
         create_intent(
             dialogflow_project_id,
@@ -96,4 +111,4 @@ if __name__ == '__main__':
         # limit 'All other requests per minute' of DialogFlow service
         time.sleep(3)
 
-    logger.debug('DialogFlow base update complete.')
+    logging.debug('DialogFlow base update complete.')
