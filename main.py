@@ -44,9 +44,9 @@ def send_chat_message(
 
     if 'погода ' in update.message.text.lower():
         location = update.message.text.lower().split(' ')[1]
-        if location:
-            get_metcast(update.message.text.lower().split(' ')[1])
-            update.message.reply_photo(open('weather.png', "rb"))
+        get_metcast(location)
+        update.message.reply_photo(open('weather.png', "rb"))
+
     else:
         reply = fetch_answer_from_intent(
             project_id, session_id, update.message.text, language
