@@ -12,9 +12,6 @@ from telegram.ext import CommandHandler
 from telegram.ext import MessageHandler, Filters
 from telegram.ext import Updater
 
-custom_keyboard = [['Кнопка 1', 'Кнопка 2'], ['Кнопка 3']]
-reply_markup = telegram.ReplyKeyboardMarkup(custom_keyboard)
-
 
 def get_metcast(location):
     weather_url = f'https://wttr.in/{location}_2p_lang=ru.png'
@@ -82,14 +79,20 @@ def start(
         context,
         hopper_users: list
 ):
+
     print(update.message.from_user)  # TODO:отладочный принт
+
+
+
     first_name = update.message.from_user['first_name']
     last_name = update.message.from_user['last_name']
     if update.message.from_user['username'].lower() in hopper_users:
         text = f'''
-        Привет {first_name} {last_name}, рад видеть тебя. :)
-        Чем могу помочь?
+        Привет {first_name} {last_name}!
+        Используй клавиатуру ниже, для работы с ботом.
         '''
+        custom_keyboard = [['Бронировать\nпереговорную', 'Согласовать отпуск,\nбольничный', 'Заказать справку'], ['Телефонная книга', 'Отправить жалобу/\nпредложение', 'У меня сломался компьютер']]
+        reply_markup = telegram.ReplyKeyboardMarkup(custom_keyboard, resize_keyboard=True)
         update.message.reply_text(text, reply_markup=reply_markup)
 
     else:
